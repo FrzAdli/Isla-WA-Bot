@@ -47,7 +47,7 @@ const textColor = {
 
 
 // Read about.txt file
-const about = fs.readFileSync("aboutai.txt", "utf-8");
+const about = fs.readFileSync("about.txt", "utf-8");
 const conversation = [{ role: "system", content: about }];
 
 // const client = new Client({
