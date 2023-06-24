@@ -11,7 +11,7 @@ const puppeteer = require('puppeteer');
 const { convertToGrayscale, remini, restore, removeBackground, createStickerWithText } = require('./lib/imgtools');
 const { generateDALLEImage, generateAnime, imageToAnime } = require('./lib/aitools')
 const { searchYouTube, searchImage  } = require('./lib/searcher');
-const { igdownloader, twitterScrape, downloadFile, ytMP3, ytMP4, playlagu } = require('./lib/downloader');
+const { igdownloader, twitterScrape, downloadFile, ytMP3, ytMP4, playlagu, fbDownloader } = require('./lib/downloader');
 const uploadImage = require('./lib/uploader');
 
 const textColor = {
@@ -114,6 +114,7 @@ client.on('message', async msg => {
 ‣ .ytmp4 *linkyoutube*
 ‣ .ig *linkinstagram*
 ‣ .twmp4 *linktwitter*
+‣ .fbmp4 *linkfacebook*
 
 *_Fun Command_*
 ‣ .waifu
@@ -450,8 +451,9 @@ client.on('message', async msg => {
               msg.reply("_Mohon tunggu sebentar..._")
               const result = await ytMP4(link);
               if (result) {
-                const media = await MessageMedia.fromFilePath(result);
-                const fileSizeInBytes = statSync(result).size;
+                const media = await MessageMedia.fromFilePath(result.path);
+                media.filename = result.title
+                const fileSizeInBytes = statSync(result.path).size;
                 const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
                 if (fileSizeInMB < 15) {
                   await client.sendMessage(msg.from, media);
@@ -461,7 +463,7 @@ client.on('message', async msg => {
               } else {
                 msg.reply("_Gagal mengunduh video._");
               }
-              fs.unlinkSync(result);
+              fs.unlinkSync(result.path);
             } catch {
               msg.reply('_Gagal mengunduh video._');
             }
@@ -481,14 +483,18 @@ client.on('message', async msg => {
                 for (const filePath of filePaths) {
                   const media = await MessageMedia.fromFilePath(filePath);      
                   if (filePath.endsWith('.jpg')) {
+                    media.filename = `ImageIG${Date.now()}.jpg`;
                     await client.sendMessage(msg.from, media);
                   } else if (filePath.endsWith('.mp4')) {
+                    media.filename = `VideoIG${Date.now()}.mp4`;
                     const fileSizeInBytes = statSync(filePath).size;
                     const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
                     if (fileSizeInMB < 15) {
-                      await client.sendMessage(msg.from, media);
+                      await client.sendMessage(msg.from, result);
+                    } else if (fileSizeInMB > 50) {
+                      msg.reply("_Ukuran file yang ingin anda unduh terlalu besar untuk dikirim._");
                     } else {
-                      await client.sendMessage(msg.from, media, { sendMediaAsDocument: true });
+                      await client.sendMessage(msg.from, result, {sendMediaAsDocument:true});
                     }
                   } else {
                     msg.reply("_Format file tidak didukung._");
@@ -518,10 +524,13 @@ client.on('message', async msg => {
                 for (const filePath of filePaths) { 
                   const media = await MessageMedia.fromFilePath(filePath);
                   if (filePath.endsWith('.mp4')) {
+                  media.filename = `VideoTW${Date.now()}.mp4`;
                   const fileSizeInBytes = statSync(filePath).size;
                   const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
                   if (fileSizeInMB < 15) {
                     await client.sendMessage(msg.from, media);
+                  } else if (fileSizeInMB > 50) {
+                    msg.reply("_Ukuran file yang ingin anda unduh terlalu besar untuk dikirim._");
                   } else {
                     await client.sendMessage(msg.from, media, { sendMediaAsDocument: true });
                   }
@@ -539,6 +548,33 @@ client.on('message', async msg => {
             }
           } else {
             msg.reply("_URL Twitter tidak valid._");
+          }
+        }
+
+        if (cmd == "fbmp4") {
+          const url = args;
+          if (url.includes("fb.watch") || url.includes("facebook.com")) {
+            try {
+              msg.reply("_Mohon tunggu sebentar..._");
+              const result = await fbDownloader(url);
+              if (result) {
+                result.filename = `VideoFB${Date.now()}.mp4`;
+                const fileSizeInMB = result.filesize / (1024 * 1024);
+                if (fileSizeInMB < 15) {
+                  await client.sendMessage(msg.from, result);
+                } else if (fileSizeInMB > 50) {
+                  msg.reply("_Ukuran file yang ingin anda unduh terlalu besar untuk dikirim._");
+                } else {
+                  await client.sendMessage(msg.from, result, {sendMediaAsDocument:true});
+                }
+              } else {
+                msg.reply("_Terjadi kesalahan saat mengunduh media._");
+              }
+            } catch (error) {
+              msg.reply("_Terjadi kesalahan saat mengunduh data._");
+            }
+          } else {
+            msg.reply("_URL Facebook tidak valid._");
           }
         }
  
