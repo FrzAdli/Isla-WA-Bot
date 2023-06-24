@@ -3,6 +3,7 @@
     "removeBgApiKey": "REMOVEBG_API" ,
     "stablediffApiKey": "STABLEDIF_API",
     "googleapisApi" : "GOOGLECUSTOMSEARCH_API",
-    "SearchEngineID" : "GOOGLESEARCHENGINE_ID"
+    "SearchEngineID" : "GOOGLESEARCHENGINE_ID",
+    "rapidApiKey" : "RAPIDAPI_KEY"
   }
   
