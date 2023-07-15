@@ -4,6 +4,8 @@
     "stablediffApiKey": "STABLEDIF_API",
     "googleapisApi" : "GOOGLECUSTOMSEARCH_API",
     "SearchEngineID" : "GOOGLESEARCHENGINE_ID",
-    "rapidApiKey" : "RAPIDAPI_KEY"
+    "rapidApiKey" : "RAPIDAPI_KEY",
+    "pineconeApi" : "PINECONE_API",
+    "pineconeEnvironment": "PINECONE_ENVIRONMENT"
   }
   
