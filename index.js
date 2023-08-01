@@ -78,38 +78,33 @@ app.get('/', (req, res) => {
 
 client.on('qr', qrData => {
   console.log("generating qr");
-  // console.log(qrData);
-
-  // Fungsi untuk menghasilkan gambar QR code
-  function generateQRCode(qrData) {
-    qr.toFile('qrcode.png', qrData, {
-      type: 'png',
-      errorCorrectionLevel: 'H',
-      scale: 5,
-    }, (err) => {
-      if (err) {
-        console.error('Error generating QR code:', err);
-        return;
-      }
-
-      console.log('QR code image has been saved.');
-
-      // Membaca gambar QR code dalam bentuk base64
-      fs.readFile('qrcode.png', { encoding: 'base64' }, (err, data) => {
-        if (err) {
-          console.error('Error reading QR code image:', err);
-          return;
-        }
-
-        // Mengirimkan gambar QR code ke klien melalui Socket.IO
-        io.emit('sendQRCode', data);
-      });
-    });
-  }
-
   io.on('connection', (socket) => {
     socket.on('requestQRCode', () => {
-      // Memanggil fungsi untuk menghasilkan gambar QR code
+      function generateQRCode(qrData) {
+        qr.toFile('qrcode.png', qrData, {
+          type: 'png',
+          errorCorrectionLevel: 'H',
+          scale: 5,
+        }, (err) => {
+          if (err) {
+            console.error('Error generating QR code:', err);
+            return;
+          }
+    
+          console.log('QR code image has been saved.');
+    
+          // Membaca gambar QR code dalam bentuk base64
+          fs.readFile('qrcode.png', { encoding: 'base64' }, (err, data) => {
+            if (err) {
+              console.error('Error reading QR code image:', err);
+              return;
+            }
+    
+            // Mengirimkan gambar QR code ke klien melalui Socket.IO
+            io.emit('sendQRCode', data);
+          });
+        });
+      }
       generateQRCode(qrData);
     });
   });
