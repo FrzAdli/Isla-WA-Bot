@@ -7,14 +7,18 @@ const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const qr = require('qrcode');
+
 // import
 const { convertToGrayscale, remini, restore, removeBackground, createStickerWithText } = require('./lib/imgtools');
 const { generateDALLEImage, generateAnime, imageToAnime, transcribeAudio, getVector } = require('./lib/aitools')
 const { searchYouTube, searchImage  } = require('./lib/searcher');
-const { igdownloader, twitterScrape, downloadFile, ytMP3, ytMP4, playlagu, fbDownloader, download_music, downloadVoice } = require('./lib/downloader');
+const { igdownloader, twitterScrape, downloadFile, ytMP3, ytMP4, playlagu, fbDownloader, download_music, downloadVoice, igMP3 } = require('./lib/downloader');
 const uploadImage = require('./lib/uploader');
 const { callPython } = require('./lib/pythonhandler');
-const manipulateAudio = require('./lib/audioconvert');
 const { convertToOpus } = require('./utils/converter');
 const { getMoods } = require('./lib/emotions');
 const translator = require('./utils/translator');
@@ -49,9 +53,70 @@ const client = new Client({
             executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
     } 
 });
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+const port = 3000;
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html'); // Ganti 'index.html' dengan halaman web Anda
+});
  
-client.on('qr', qr => {
-  qrcode.generate(qr, {small: true});
+// client.on('qr', qr => {
+//   console.log("generating qr");
+//   // console.log(qr);
+//   io.on('connection', (socket) => {
+//     socket.on('requestQRCode', () => {
+//       qrcode.generate(qr, { small: true }, (qrCode) => {
+//         io.emit('sendQRCode', qrCode);
+//       });
+//     });
+//   });
+// });
+
+client.on('qr', qrData => {
+  console.log("generating qr");
+  // console.log(qrData);
+
+  // Fungsi untuk menghasilkan gambar QR code
+  function generateQRCode(qrData) {
+    qr.toFile('qrcode.png', qrData, {
+      type: 'png',
+      errorCorrectionLevel: 'H',
+      scale: 5,
+    }, (err) => {
+      if (err) {
+        console.error('Error generating QR code:', err);
+        return;
+      }
+
+      console.log('QR code image has been saved.');
+
+      // Membaca gambar QR code dalam bentuk base64
+      fs.readFile('qrcode.png', { encoding: 'base64' }, (err, data) => {
+        if (err) {
+          console.error('Error reading QR code image:', err);
+          return;
+        }
+
+        // Mengirimkan gambar QR code ke klien melalui Socket.IO
+        io.emit('sendQRCode', data);
+      });
+    });
+  }
+
+  io.on('connection', (socket) => {
+    socket.on('requestQRCode', () => {
+      // Memanggil fungsi untuk menghasilkan gambar QR code
+      generateQRCode(qrData);
+    });
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Server berjalan di http://localhost:${port}`);
 });
  
 client.on('ready', () => {
@@ -502,6 +567,8 @@ client.on('message', async msg => {
               msg.reply("gagal mencari gambar.");
             }
 
+          } else if (respond.function_name == "situation_description") {
+            console.log(respond.desc);
           }
           else {
             msg.reply('_Terjadi kesalahan, mohon coba beberapa saat lagi._');
@@ -790,6 +857,35 @@ client.on('message', async msg => {
             }
           } catch (error) {
             msg.reply("_Terjadi kesalahan saat mengunduh data._");
+          }
+        } else {
+          msg.reply("_URL Instagram tidak valid._");
+        }
+      }
+
+      if (cmd == "igmp3") {
+        const url = args;
+        if (url.includes("instagram.com")) {
+          try {
+            msg.reply("_Mohon tunggu sebentar..._");
+            const result = await igMP3(url);
+            if (result) {
+              const { filePaths, remainingRequests } = result;
+              for (const filePath of filePaths) {
+                const media = await MessageMedia.fromFilePath(filePath);      
+                if (filePath.endsWith('.mp3')) {
+                  await client.sendMessage(msg.from, media, {sendMediaAsDocument:true});
+                  msg.reply("Karena keterbatasan Isla, command ini memiliki sisa batas penggunaan sebanyak *" + remainingRequests + "* kali lagi, dan direset setiap bulan.");
+                } else {
+                  msg.reply("_Terjadi kesalahan, pastikan URL mengandung video untuk diunduh audionya._")
+                }
+                fs.unlinkSync(filePath);
+              }
+            } else {
+              msg.reply("_Terjadi kesalahan saat mengunduh._");
+            }
+          } catch (error) {
+            msg.reply("_Terjadi kesalahan saat mengunduh. Pastikan link mengandung sebuah video_");
           }
         } else {
           msg.reply("_URL Instagram tidak valid._");
