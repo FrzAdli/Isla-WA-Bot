@@ -1,11 +1,10 @@
 {
-    "keyopenai": "OPENAI_API",
-    "removeBgApiKey": "REMOVEBG_API" ,
-    "stablediffApiKey": "STABLEDIF_API",
-    "googleapisApi" : "GOOGLECUSTOMSEARCH_API",
-    "SearchEngineID" : "GOOGLESEARCHENGINE_ID",
-    "rapidApiKey" : "RAPIDAPI_KEY",
-    "pineconeApi" : "PINECONE_API",
-    "pineconeEnvironment": "PINECONE_ENVIRONMENT"
-  }
-  
+  "openaiApi_1": "OPENAI_KEY",
+  "removeBgApiKey": "REMOVEBG_KEY" ,
+  "googleapisApi" : "GOOGLEAPIS_KEY",
+  "SearchEngineID" : "SEARCHENGINE_ID",
+  "rapidApiKey" : "RAPIDAPI_KEY",
+  "pineconeApi" : "PINECONE_KEY",
+  "pineconeEnvironment": "PINECONE_ENV",
+  "prodiaApi": "PRODIA_KEY"
+}
