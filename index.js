@@ -868,45 +868,7 @@ client.on('message', async msg => {
             msg.reply("_Mohon maaf, sepertinya terjadi masalah._")
           } 
       }
-      
-      if (cmd == "removebg") {
-          let media;
-          if (msg.hasQuotedMsg) {
-              const quotedMsg = await msg.getQuotedMessage();
-              if (quotedMsg.hasMedia) {
-                  media = await quotedMsg.downloadMedia();
-              } else {
-                  // Respon jika pesan yang direspon bukan gambar
-                  msg.reply("_Mohon maaf, reply harus berupa gambar._");
-                  return;
-              }
-          } else {
-              if (msg.hasMedia) {
-                  media = await msg.downloadMedia();
-              } else {
-                  msg.reply("_Mohon maaf, kirimkan gambar untuk menghapus latar belakang._");
-                  return;
-              }
-          }
-          const allowedUsers = JSON.parse(fs.readFileSync('user.json', 'utf-8'));
-          try{
-              if (allowedUsers.includes(senderNumber) || allowedUsers.includes(senderId)) {
-                msg.reply("_Mohon tunggu sebentar..._");
-                const attachmentData = await removeBackground(media);
-                if (attachmentData) {
-                    client.sendMessage(msg.from, attachmentData);
-                    client.sendMessage(msg.from, attachmentData, { sendMediaAsDocument: true });
-                } else {
-                    msg.reply('_Gagal menghapus latar belakang gambar._');
-                }
-            } else {
-                msg.reply('_Anda tidak diizinkan untuk menggunakan perintah ini._');
-            }
-          } catch {
-            msg.reply("_Mohon maaf, sepertinya terjadi masalah._")
-          } 
-      }
-
+    
       if (cmd == "enhance") {
           let media; 
           if (msg.hasQuotedMsg) {
