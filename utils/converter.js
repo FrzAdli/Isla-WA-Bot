@@ -1,36 +1,23 @@
+const fs = require('fs');
+const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
-
-async function convertToH264(inputFilePath, outputFilePath) {
-  return new Promise((resolve, reject) => {
-    ffmpeg(inputFilePath)
-      .output(outputFilePath)
-      .videoCodec('libx264')
-      .audioCodec('aac')
-      .outputOptions([
-        '-preset medium',
-        '-crf 23',
-        '-b:a 128k'
-      ])
-      .on('end', () => {
-        // console.log('Video converted successfully!');
-        resolve();
-      })
-      .on('error', (err) => {
-        // console.error('Error converting video:', err.message);
-        reject(err);
-      })
-      .run();
-  });
-}
+const ffmpegPath = require('ffmpeg-static');
 
 function convertToOpus(inputFilePath, outputFilePath) {
   return new Promise((resolve, reject) => {
-    ffmpeg(inputFilePath)
+    const input = path.resolve(inputFilePath);
+    const output = path.resolve(outputFilePath);
+
+    ffmpeg.setFfmpegPath(ffmpegPath);
+
+    ffmpeg(input)
       .toFormat('opus')
       .on('error', reject)
-      .on('end', resolve)
-      .save(outputFilePath);
+      .on('end', () => {
+        resolve();
+      })
+      .save(output);
   });
 }
 
-module.exports = { convertToH264, convertToOpus };
+module.exports = { convertToOpus };
